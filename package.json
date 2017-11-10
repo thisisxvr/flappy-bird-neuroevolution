@@ -1,0 +1,40 @@
+{
+  "name": "flappy-bird-neuroevolution",
+  "version": "1.0.0",
+  "description": "Neuroevolution on Flappy Bird.",
+  "author": "Xavier Francis",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thisisxvr/flappy-bird-neuroevolution"
+  },
+  "devDependencies": {
+    "ts-node": "^3.3.0"
+  },
+  "scripts": {
+    "test": "tsc --noEmit -p . && jest --no-cache --verbose",
+    "lint": "tslint -p . --type-check -t verbose",
+    "lintci": "tslint -p . --type-check -t verbose",
+    "ts run": "ts-node ${file}"
+  },
+  "dependencies": {
+    "@types/jest": "^20.0.0",
+    "@types/node": "^7.0.5",
+    "jest": "^20.0.4",
+    "ts-jest": "^20.0.6",
+    "tslint": "^5.4.3",
+    "typescript": "^2.2.1"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
+  }
+}
