@@ -1,51 +1,72 @@
 import NeuralNetwork from "./neural-network"
 
-class GeneticAlgorithm {
-  private population: NeuralNetwork[]
-  private mutationRate = 0.1
-  private mutationRange = 0.5
-  private crossoverProbability = 0.5
+namespace GeneticAlgorithm {
 
-  constructor(populationCount: number) {
-    this.population = new Array<NeuralNetwork>(populationCount)
-  }
+  const mutationRate = 0.1
+  const mutationRange = 0.5
+  const crossoverRate = 0.5
+  let generations: Generation[]
 
-  evolve() {
-
-  }
-
-  breed(parentOne: NeuralNetwork, parentTwo: NeuralNetwork, numberOfOffspring: number): NeuralNetwork[] {
-    let offspring = new Array<NeuralNetwork>(numberOfOffspring)
-
-    for (let i = 0; i < numberOfOffspring; i++) {
-      let child = this.crossover(parentOne, parentTwo)
-      this.mutate(child)
-      offspring[i] = child
+  function evolve() {
+    if (generations.length === 0) {
+      //
     }
-
-    return offspring
   }
 
-  private crossover(parentOne: NeuralNetwork, parentTwo: NeuralNetwork): NeuralNetwork {
-    let child = parentOne
+  class Generation {
+    private population: NeuralNetwork[]
 
-    for (let i in parentTwo.weights) {
-      if (Math.random() <= this.crossoverProbability) {
-        child.weights[i] = parentTwo.weights[i]
+    constructor(populationCount: number) {
+      for (let i = 0; i < populationCount; i++) {
+        this.population[i] = new NeuralNetwork()
       }
     }
 
-    return child
-  }
+    sortPopulation() {
+      const mapped = this.population.map((chromosome, index) => {
+        return { index, score: chromosome.fitness }
+      })
 
-  private mutate(chromosome: NeuralNetwork) {
-    for (let i in chromosome.weights) {
-      if (Math.random() <= this.mutationRate) {
-        chromosome.weights[i] += Math.random() * this.mutationRange * 2 - this.mutationRange
-      }
+      mapped.sort((a, b) => {
+        if (a.score > b.score) { return 1 }
+        if (a.score < b.score) { return -1 }
+        return 0
+      })
+
+      const temp = mapped.map((chromosome) => { return this.population[chromosome.index] })
+      this.population = temp
     }
-  }
 
+    breed(parentOne: NeuralNetwork, parentTwo: NeuralNetwork, numberOfOffspring: number): NeuralNetwork[] {
+      function crossover(parentOne: NeuralNetwork, parentTwo: NeuralNetwork): NeuralNetwork {
+        const child = parentOne
+
+        for (const i in parentTwo.weights) {
+          if (Math.random() <= crossoverRate) { child.weights[i] = parentTwo.weights[i] }
+        }
+
+        return child
+      }
+
+      function mutate(chromosome: NeuralNetwork) {
+        for (const i in chromosome.weights) {
+          if (Math.random() <= mutationRate) {
+            chromosome.weights[i] += Math.random() * mutationRange * 2 - mutationRange
+          }
+        }
+      }
+
+      const offspring = new Array<NeuralNetwork>(numberOfOffspring)
+
+      for (let i = 0; i < numberOfOffspring; i++) {
+        const child = crossover(parentOne, parentTwo)
+        mutate(child)
+        offspring[i] = child
+      }
+
+      return offspring
+    }
+
+  }
 }
-
 export default GeneticAlgorithm
