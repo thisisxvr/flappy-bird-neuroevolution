@@ -30,8 +30,8 @@ namespace GeneticAlgorithm {
 
     constructor(networkShape = [2, [2], 1], popCount = populationCount, newPopulation?: NeuralNetwork[]) {
       if (newPopulation) {
-        this._population = this.sortPopulation(newPopulation)
-        return
+        this._population = this.rank(newPopulation)
+        return this
       }
 
       this._population = new Array<NeuralNetwork>(popCount)
@@ -42,7 +42,7 @@ namespace GeneticAlgorithm {
     }
 
     // Sorts the population in descending order, ranked by score.
-    private sortPopulation(population = this._population): NeuralNetwork[] {
+    private rank(population = this._population): NeuralNetwork[] {
       const mapped = population.map((chromosome, index) => {
         return { index, score: chromosome.fitness }
       })
@@ -61,17 +61,16 @@ namespace GeneticAlgorithm {
       function crossover(parentOne: NeuralNetwork, parentTwo: NeuralNetwork): NeuralNetwork {
         const child = parentOne
 
-        for (const i in parentTwo.weights) {
-          if (Math.random() <= crossoverRate) { child.weights[i] = parentTwo.weights[i] }
+        for (const i in parentTwo.Weights) {
+          if (Math.random() <= crossoverRate) { child.Weights[i] = parentTwo.Weights[i] }
         }
-
         return child
       }
 
       function mutate(chromosome: NeuralNetwork) {
-        for (const i in chromosome.weights) {
+        for (const i in chromosome.Weights) {
           if (Math.random() <= mutationRate) {
-            chromosome.weights[i] += Math.random() * mutationRange * 2 - mutationRange
+            chromosome.Weights[i] += Math.random() * mutationRange * 2 - mutationRange
           }
         }
       }
@@ -81,6 +80,7 @@ namespace GeneticAlgorithm {
       for (let i = 0; i < numberOfOffspring; i++) {
         const child = crossover(parentOne, parentTwo)
         mutate(child)
+        child.persist()
         offspring[i] = child
       }
 
@@ -90,7 +90,7 @@ namespace GeneticAlgorithm {
     // Returns the next generation.
     next(): Generation {
       const nextGen = []
-      this.sortPopulation()
+      this.rank()
 
       // Push some of the elite chromosomes into the next generation unchanged.
       for (let i = 0; i < Math.round(elitismRate * populationCount); i++) {
@@ -100,8 +100,8 @@ namespace GeneticAlgorithm {
       // Introduce some randomness into the next generation.
       for (let i = 0; i < Math.round(randomnessRate * populationCount); i++) {
         const firstNetwork = this._population[0]
-        for (const i in firstNetwork.weights) {
-          if (nextGen.length < populationCount) { nextGen.push(firstNetwork.weights[i] = this.randomClamped()) }
+        for (const i in firstNetwork.Weights) {
+          if (nextGen.length < populationCount) { nextGen.push(firstNetwork.Weights[i] = this.randomClamped()) }
         }
       }
 
