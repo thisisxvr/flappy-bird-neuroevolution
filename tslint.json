@@ -99,7 +99,7 @@
         "no-var-requires": true,
         "no-any": true,
         "curly": true,
-        "forin": true,
+        // "forin": true,
         "no-arg": true,
         "label-position": true,
         "no-conditional-assignment": true,
