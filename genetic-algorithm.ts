@@ -1,22 +1,20 @@
-import NeuralNetwork from "./neural-network"
+/// <reference path="neural-network.ts" />
 
 namespace GeneticAlgorithm {
-
+  import NeuralNetwork = Network.NeuralNetwork
   const crossoverRate  = 0.5
   const elitismRate    = 0.2
   const mutationRate   = 0.1
   const mutationRange  = 0.5
   const randomnessRate = 0.2
+  const generations: Generation[] = []
   let populationCount: number
-  let generations: Generation[]
-
-  function evolve(networkShape = [2, [2], 1], popCount = 50): Generation {
+  export function evolve(networkShape = [2, [2], 1], popCount = 50): Generation {
     populationCount = popCount
     if (generations.length === 0) {
-      generations = []
-      const nextGeneration = new Generation(networkShape, populationCount)
-      generations.push(nextGeneration)
-      return nextGeneration
+      const firstGeneration = new Generation(networkShape, populationCount)
+      generations.push(firstGeneration)
+      return firstGeneration
     } else {
       const currentGeneration = generations[generations.length - 1]
       const nextGeneration = currentGeneration.next()
@@ -25,8 +23,9 @@ namespace GeneticAlgorithm {
     }
   }
 
-  class Generation {
+  export class Generation {
     private _population: NeuralNetwork[]
+    get Population() { return this._population }
 
     constructor(networkShape = [2, [2], 1], popCount = populationCount, newPopulation?: NeuralNetwork[]) {
       if (newPopulation) {
@@ -123,9 +122,5 @@ namespace GeneticAlgorithm {
 
     // Returns a random value between -1 and 1.
     private randomClamped(): number { return Math.random() * 2 - 1 }
-
   }
-
 }
-
-export default GeneticAlgorithm
