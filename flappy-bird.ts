@@ -118,7 +118,7 @@ namespace FlappyBird {
     if (interval === spawnInterval) { interval = 0 }
 
     score++
-    setTimeout(() => { update() }, 1000 / fps)
+    setTimeout(update, 1000 / fps)
   }
 
   function gameOver(): boolean {

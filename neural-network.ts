@@ -4,25 +4,26 @@ namespace Network {
     private _weights: number[]
     private layers: Layer[]
 
-    constructor([input, ...hidden]: Array<number | number[]>) {
-      const output = hidden.pop() as number
+    constructor([inputNodeCount, ...otherLayers]: Array<number | number[]>) {
+      const outputNodeCount = otherLayers.pop()
+      const hiddenNodeCount = otherLayers[0] as number[]
       this.layers = [], this._weights = []
       let nodesInPreviousLayer = 0, index = 0
       // Input layer.
-      this.layers[0] = new Layer(input as number, nodesInPreviousLayer, index)
-      nodesInPreviousLayer = input as number
+      this.layers[0] = new Layer(inputNodeCount as number, nodesInPreviousLayer, index)
+      nodesInPreviousLayer = inputNodeCount as number
       // Hidden layers.
-      for (const i in hidden as number[]) {
-        const nodeCount = hidden[i] as number
+      for (const i in hiddenNodeCount as number[]) {
+        const nodeCount = hiddenNodeCount[i]
         this.layers.push(new Layer(nodeCount, nodesInPreviousLayer, ++index))
-        nodesInPreviousLayer = hidden[i] as number
+        nodesInPreviousLayer = hiddenNodeCount[i]
       }
       // Output layer.
-      this.layers.push(new Layer(output, nodesInPreviousLayer, ++index))
+      this.layers.push(new Layer(outputNodeCount as number, nodesInPreviousLayer, ++index))
     }
 
     // Returns a flat array with weights of ALL neurons in the network.
-    get Weights() {
+    get weights() {
       if (this._weights.length) { return this._weights }
       for (const layer of this.layers) {
         for (const neuron of layer) { this._weights.concat(neuron.weights) }
@@ -49,7 +50,8 @@ namespace Network {
       // Pass inputs to the input layer.
       const inputLayer = this.layers[0]
       for (const i in inputs) {
-        for (const inputNeuron of inputLayer) { inputNeuron.value = inputs[i] }
+        const inputNeuron = inputLayer.nodes[i]
+        inputNeuron.value = inputs[i]
       }
 
       // Compute outputs of hidden layers and output layer.
@@ -59,7 +61,7 @@ namespace Network {
         for (const neuron of layer) {
           for (const previousNeuron of previousLayer) {
             let sum = 0
-            for (const weight of previousNeuron.weights) { sum += previousNeuron.value * weight }
+            for (const weight of neuron.weights) { sum += previousNeuron.value * weight }
             neuron.activate(sum)
           }
         }
@@ -77,20 +79,22 @@ namespace Network {
 
   class Layer {
     private id: number
-    private nodes: Neuron[]
+    private _nodes: Neuron[]
     private pointer = 0
+    get nodes() { return this._nodes }
 
     constructor(nodeCount: number, inputCount: number, index = 0) {
       this.id = index
-      this.nodes = new Array<Neuron>(nodeCount)
-      for (let i = 0; i < nodeCount; i++) { this.nodes[i] = new Neuron(inputCount) }
+      this._nodes = new Array<Neuron>(nodeCount)
+      for (let i = 0; i < nodeCount; i++) { this._nodes[i] = new Neuron(inputCount) }
     }
 
     // Returns a Neuron when iterating over a Layer object.
     next(): IteratorResult<Neuron> {
-      if (this.pointer < this.nodes.length) {
-        return { done: false, value: this.nodes[this.pointer++] }
+      if (this.pointer < this._nodes.length) {
+        return { done: false, value: this._nodes[this.pointer++] }
       }
+      this.pointer = 0
       return { done: true, value: undefined! }
     }
 
