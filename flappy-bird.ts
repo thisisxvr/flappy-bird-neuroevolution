@@ -10,8 +10,9 @@ namespace FlappyBird {
   const backgroundSpeed = 0.5
   let backgroundx       = 0
   const spawnInterval   = 90
-  // let generationNumber = 0
-  const fps = 60
+  let generationNumber  = 0
+  let fps               = 60
+  // let currentGeneration: GeneticAlgorithm.Generation
   // tslint:disable-next-line:no-any
   let population: NeuralNetwork[], images: {[index: string]: any}, score: number, interval: number, pipes: Pipe[], birds: Bird[]
 
@@ -21,57 +22,20 @@ namespace FlappyBird {
     pipes = []
     birds = []
 
-    population = GeneticAlgorithm.evolve().Population
+    // currentGeneration =
+    population = GeneticAlgorithm.evolve()
     for (const _ in population) { birds.push(new Bird()) }
-    // generationNumber++
-  }
-
-  function display() {
-    ctx.clearRect(0, 0, width, height)
-
-    // Draw background.
-    for (let i = 0; i < Math.ceil(width / images.bg.width) + 1; i++) {
-      ctx.drawImage(images.bg, i * images.bg.width - Math.floor(backgroundx % images.bg.width), 0)
-    }
-
-    // Draw pipes.
-    for (const i in pipes) {
-      const pipe = pipes[i]
-      if (Number(i) % 2 === 0) {
-        ctx.drawImage(images.pipeTop,
-          pipe.x, pipe.y + pipe.height + images.pipeTop.height,
-          pipe.width, images.pipeTop.height) }
-      else {
-        ctx.drawImage(images.pipeBottom,
-          pipe.x, pipe.y, pipe.width, images.pipeBottom.height)
-      }
-    }
-
-    ctx.fillStyle = "#FFC600"
-    ctx.strokeStyle = "#CE9E00"
-
-    // Draw birds.
-    for (const i in birds) {
-      const bird = birds[i]
-      if (bird.alive) {
-        ctx.save()
-        ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2)
-        ctx.rotate(Math.PI / 2 * bird.gravity / 20)
-        ctx.drawImage(images.bird, -bird.width / 2, -bird.height / 2, bird.width, bird.height)
-        ctx.restore()
-      }
-    }
-
-    requestAnimationFrame(() => { display() })
+    generationNumber++
   }
 
   function update() {
     backgroundx += backgroundSpeed
     let aperturePos = 0
 
-    // Get the location of the next gap in pipes.
+    // Get the location of the next pipe.
     if (birds.length > 0) {
-      for (const pipe of pipes) {
+      for (let i = 0; i < pipes.length; i += 2) {
+        const pipe = pipes[i]
         if (pipe.x + pipe.width > birds[0].x) {
           aperturePos = pipe.height / height
           break
@@ -79,13 +43,15 @@ namespace FlappyBird {
       }
     }
 
-    // Pass the inputs to each birds network, and act on the output.
+    // Pass the inputs to each bird's network, and act on the output.
     for (const i in birds) {
       const bird = birds[i]
       if (bird.alive) {
         const inputs = [bird.y / height, aperturePos]
         const decision = population[i].compute(inputs)[0]
-        if (decision > 0.5) { bird.flap() }
+        if (decision > 0.5) {
+          bird.flap()
+        }
 
         bird.update()
         if (bird.isDead(height, pipes)) {
@@ -108,10 +74,10 @@ namespace FlappyBird {
     if (interval === 0) {
       const birdDelta = 50
       const apertureSize = 120
-      const aperturePos = Math.round(Math.random() * (height - birdDelta * 2 - apertureSize) + birdDelta)
+      const aperturePos = Math.round(Math.random() * (height - birdDelta * 2 - apertureSize)) + birdDelta
 
       pipes.push(new Pipe(width, 0, undefined, aperturePos))
-      pipes.push(new Pipe(width, apertureSize + aperturePos, height))
+      pipes.push(new Pipe(width, apertureSize + aperturePos, undefined, height))
     }
 
     interval++
@@ -119,6 +85,45 @@ namespace FlappyBird {
 
     score++
     setTimeout(update, 1000 / fps)
+  }
+
+  function display() {
+    ctx.clearRect(0, 0, width, height)
+
+    // Draw background.
+    for (let i = 0; i < Math.ceil(width / images.bg.width) + 1; i++) {
+      ctx.drawImage(images.bg, i * images.bg.width - Math.floor(backgroundx % images.bg.width), 0)
+    }
+
+    // Draw pipes.
+    for (const i in pipes) {
+      const pipe = pipes[i]
+      if (Number(i) % 2 === 0) {
+        ctx.drawImage(images.pipeTop,
+          pipe.x, pipe.y + pipe.height - images.pipeTop.height,
+          pipe.width, images.pipeTop.height) }
+      else {
+        ctx.drawImage(images.pipeBottom,
+          pipe.x, pipe.y, pipe.width, images.pipeTop.height)
+      }
+    }
+
+    ctx.fillStyle = "#FFC600"
+    ctx.strokeStyle = "#CE9E00"
+
+    // Draw birds.
+    for (const i in birds) {
+      const bird = birds[i]
+      if (bird.alive) {
+        ctx.save()
+        ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2)
+        ctx.rotate(Math.PI / 2 * bird.gravity / 20)
+        ctx.drawImage(images.bird, -bird.width / 2, -bird.height / 2, bird.width, bird.height)
+        ctx.restore()
+      }
+    }
+
+    requestAnimationFrame(() => { display() })
   }
 
   function gameOver(): boolean {
@@ -143,7 +148,7 @@ namespace FlappyBird {
     }
   }
 
-  // function setSpeed(newFPS: string) { fps = parseInt(newFPS, 10) }
+  function setSpeed(newFPS: string) { fps = parseInt(newFPS, 10) }
 
   window.onload = () => {
     const sprites = {
