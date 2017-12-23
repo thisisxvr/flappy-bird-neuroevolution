@@ -1,14 +1,16 @@
 /// <reference path="neural-network.ts" />
 
 namespace GeneticAlgorithm {
+  import IData = Network.IData
   import NeuralNetwork = Network.NeuralNetwork
-  const crossoverRate = 0.5
-  const elitismRate = 0.2
-  const mutationRate = 0.1
-  const mutationRange = 0.5
-  const randomnessRate = 0.2
-  const generations: NeuralNetwork[][] = []
+  const elitismRate    = 0.2    // Best networks pushed unchanged into the next gen.
+  const randomnessRate = 0.2    // New random networks for the next generation.
+  const crossoverRange = 0.5    // Uniform crossover range.
+  const mutationRate   = 0.1    // Mutation rate on weights.
+  const mutationRange  = 0.5    // Interval of the mutation changes on the genome's weight.
+  const generations:     NeuralNetwork[][] = []
   let populationCount: number
+
   export function evolve(networkShape = [2, [2], 1], popCount = 50): NeuralNetwork[] {
     populationCount = popCount
     if (generations.length === 0) {
@@ -30,18 +32,6 @@ namespace GeneticAlgorithm {
 
   namespace Generation {
 
-    // constructor(networkShape = [2, [2], 1], popCount = 50, newPopulation?: NeuralNetwork[]) {
-    //   if (newPopulation) {
-    //     population = newPopulation
-    //     return this
-    //   }
-
-    //   population = new Array<NeuralNetwork>(popCount)
-    //   for (let i = 0; i < popCount; i++) {
-    //     population[i] = new NeuralNetwork(networkShape)
-    //   }
-    // }
-
     /** Returns the next generation. */
     export function next(): NeuralNetwork[] {
       const population = rank(generations[generations.length - 1])
@@ -54,11 +44,6 @@ namespace GeneticAlgorithm {
 
       // Introduce some newly generated chromosomes into the next generation.
       for (let i = 0; i < Math.round(randomnessRate * populationCount); i++) {
-        // const newChromosome = population[0]
-        // for (const i in newChromosome.weights) {
-        //   newChromosome.weights[i] = randomClamped()
-        // }
-        // newChromosome.persist()
         if (nextGen.length < populationCount) { nextGen.push(new NeuralNetwork([2, [2], 1])) }
       }
 
@@ -71,13 +56,6 @@ namespace GeneticAlgorithm {
         }
         if (nextGen.length >= populationCount) { break }
       }
-
-      // const nns = []
-      // for (const i in nextGen) {
-      //   const nn = new NeuralNetwork()
-      //   nn.setSave(nextGen[i])
-      //   nns.push(nn)
-      // }
 
       return nextGen
     }
@@ -99,19 +77,20 @@ namespace GeneticAlgorithm {
 
     /** Takes a pair of parents, performs crossover and mutation and returns the offspring. */
     function breed(parentOne: NeuralNetwork, parentTwo: NeuralNetwork, numberOfOffspring = 1): NeuralNetwork[] {
-      function crossover(parentOne: NeuralNetwork, parentTwo: NeuralNetwork): NeuralNetwork {
+      // tslint:disable-next-line:no-any
+      function crossover(parentOne: any, parentTwo: any): any {
         const child = parentOne
 
         for (const i in parentTwo.weights) {
-          if (Math.random() <= crossoverRate) { child.weights[i] = parentTwo.weights[i] }
+          if (Math.random() <= crossoverRange) { child.weights[i] = parentTwo.weights[i] }
         }
         return child
       }
 
-      function mutate(chromosome: NeuralNetwork) {
-        for (const i in chromosome.weights) {
+      function mutate(data: IData) {
+        for (const i in data.weights) {
           if (Math.random() <= mutationRate) {
-            chromosome.weights[i] += Math.random() * mutationRange * 2 - mutationRange
+            data.weights[i] += Math.random() * mutationRange * 2 - mutationRange
           }
         }
       }
@@ -119,16 +98,14 @@ namespace GeneticAlgorithm {
       const offspring = new Array<NeuralNetwork>(numberOfOffspring)
 
       for (let i = 0; i < numberOfOffspring; i++) {
-        const child = crossover(parentOne, parentTwo)
-        mutate(child)
-        child.persist()
+        const childData = crossover(parentOne.weights, parentTwo.weights)
+        mutate(childData)
+        const child = new NeuralNetwork()
+        child.persist(childData)
         offspring[i] = child
       }
 
       return offspring
     }
-
-    /** Returns a random value between -1 and 1. */
-    function randomClamped(): number { return Math.random() * 2 - 1 }
   }
 }
