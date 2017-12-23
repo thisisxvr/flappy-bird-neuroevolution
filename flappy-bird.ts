@@ -1,6 +1,8 @@
 /// <reference path="genetic-algorithm.ts" />
 /// <reference path="neural-network.ts" />
 
+interface Window { setZeroTimeout: Function }
+
 namespace FlappyBird {
   import NeuralNetwork  = Network.NeuralNetwork
   const canvas          = document.querySelector('#flappy-bird') as HTMLCanvasElement
@@ -11,8 +13,8 @@ namespace FlappyBird {
   let backgroundx       = 0
   const spawnInterval   = 90
   let generationNumber  = 0
+  let alives            = 0
   let fps               = 60
-  // let currentGeneration: GeneticAlgorithm.Generation
   // tslint:disable-next-line:no-any
   let population: NeuralNetwork[], images: {[index: string]: any}, score: number, interval: number, pipes: Pipe[], birds: Bird[]
 
@@ -22,10 +24,10 @@ namespace FlappyBird {
     pipes = []
     birds = []
 
-    // currentGeneration =
     population = GeneticAlgorithm.evolve()
     for (const _ in population) { birds.push(new Bird()) }
     generationNumber++
+    alives = birds.length
   }
 
   function update() {
@@ -56,6 +58,7 @@ namespace FlappyBird {
         bird.update()
         if (bird.isDead(height, pipes)) {
           bird.alive = false
+          alives--
           population[i].fitness = score
           if (gameOver()) { start() }
         }
@@ -84,7 +87,8 @@ namespace FlappyBird {
     if (interval === spawnInterval) { interval = 0 }
 
     score++
-    setTimeout(update, 1000 / fps)
+    if (fps === 0) { window.setZeroTimeout(() => { update() }) }
+      else { setTimeout(update, 1000 / fps) }
   }
 
   function display() {
@@ -101,7 +105,8 @@ namespace FlappyBird {
       if (Number(i) % 2 === 0) {
         ctx.drawImage(images.pipeTop,
           pipe.x, pipe.y + pipe.height - images.pipeTop.height,
-          pipe.width, images.pipeTop.height) }
+          pipe.width, images.pipeTop.height)
+      }
       else {
         ctx.drawImage(images.pipeBottom,
           pipe.x, pipe.y, pipe.width, images.pipeTop.height)
@@ -122,6 +127,12 @@ namespace FlappyBird {
         ctx.restore()
       }
     }
+
+    ctx.fillStyle = "white"
+    ctx.font = "20px monospace"
+    ctx.fillText(`Score : ${score}`, 10, 25)
+    ctx.fillText(`Generation : ${generationNumber}`, 10, 50)
+    ctx.fillText(`Population : ${alives} of ${population.length}`, 10, 75)
 
     requestAnimationFrame(() => { display() })
   }
@@ -148,7 +159,7 @@ namespace FlappyBird {
     }
   }
 
-  function setSpeed(newFPS: string) { fps = parseInt(newFPS, 10) }
+  export const setSpeed = (newFPS: number) => { fps = newFPS }
 
   window.onload = () => {
     const sprites = {
@@ -169,6 +180,30 @@ namespace FlappyBird {
       init()
     })
   }
+
+  // Workaround for immediate execution.
+  (() => {
+    const timeouts: Function[] = []
+    const message = "zero-timeout-message"
+
+    function setZeroTimeout(fn: Function) {
+      timeouts.push(fn)
+      window.postMessage(message, "*")
+    }
+
+    function handleMessage(event: MessageEvent) {
+      if (event.source === window && event.data === message) {
+        event.stopPropagation()
+        if (timeouts.length > 0) {
+          const fn = timeouts.shift()!
+          fn()
+        }
+      }
+    }
+
+    window.addEventListener("message", handleMessage, true)
+    window.setZeroTimeout = setZeroTimeout || {}
+  })()
 
   class Bird {
     constructor(
