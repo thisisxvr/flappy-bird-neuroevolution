@@ -13,6 +13,7 @@
     "ts-node": "^3.3.0"
   },
   "scripts": {
+    "build": "tsc -p .",
     "test": "tsc --noEmit -p . && jest --no-cache --verbose",
     "lint": "tslint -p . --type-check -t verbose",
     "lintci": "tslint -p . --type-check -t verbose",

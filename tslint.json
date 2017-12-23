@@ -99,7 +99,6 @@
         "no-var-requires": true,
         "no-any": true,
         "curly": true,
-        // "forin": true,
         "no-arg": true,
         "label-position": true,
         "no-conditional-assignment": true,
@@ -119,7 +118,6 @@
         "arrow-parens": true,
         "new-parens": true,
         "no-consecutive-blank-lines": [true,1],
-        // "no-parameter-properties": true,
         "no-unnecessary-initializer": true,
         "object-literal-shorthand": true,
         "object-literal-key-quotes": [true, "as-needed"]
