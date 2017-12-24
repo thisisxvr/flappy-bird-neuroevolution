@@ -103,8 +103,8 @@ namespace GeneticAlgorithm {
       const offspring = new Array<NeuralNetwork>(numberOfOffspring)
 
       for (let i = 0; i < numberOfOffspring; i++) {
-        const pOne = JSON.parse(JSON.stringify(parentOne.weights))  // Make a deep copy of parent one's data.
-        const childData = crossover(pOne, parentTwo.weights)
+        const pOne = JSON.parse(JSON.stringify(parentOne.data))  // Make a deep copy of parent one's data.
+        const childData = crossover(pOne, parentTwo.data)
         mutate(childData)
 
         const child = new NeuralNetwork()

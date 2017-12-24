@@ -10,6 +10,10 @@ var GeneticAlgorithm;
     const mutationRange = 0.5; // Upper and lower bounds for uniform mutation.
     const generations = [];
     let populationCount;
+    /**
+     * Entry point for the algorithm.
+     * Returns a first generation when initialized, and the next evolution on subsequent calls.
+     */
     function evolve(networkShape = [2, [2], 1], popCount = 50) {
         populationCount = popCount;
         if (generations.length === 0) {
@@ -22,11 +26,10 @@ var GeneticAlgorithm;
             return firstGeneration;
         }
         else {
-            // const currentGeneration = generations[generations.length - 1]
             const nextGeneration = Generation.next();
             if (generations.length >= 3) {
                 generations.shift();
-            }
+            } // Discard older generations.
             generations.push(nextGeneration);
             return nextGeneration;
         }
@@ -104,8 +107,8 @@ var GeneticAlgorithm;
             }
             const offspring = new Array(numberOfOffspring);
             for (let i = 0; i < numberOfOffspring; i++) {
-                const pOne = JSON.parse(JSON.stringify(parentOne.weights));
-                const childData = crossover(pOne, parentTwo.weights);
+                const pOne = JSON.parse(JSON.stringify(parentOne.data)); // Make a deep copy of parent one's data.
+                const childData = crossover(pOne, parentTwo.data);
                 mutate(childData);
                 const child = new NeuralNetwork();
                 child.persist(childData);

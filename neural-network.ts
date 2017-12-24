@@ -2,19 +2,19 @@ namespace Network {
 
   // Data structure to hold network information for the algorithm to operate on.
   export interface INetworkData {
-    neurons: number[], // Number of neurons per layer
+    nodes: number[], // Number of neurons per layer
     weights: number[]  // and their corresponding weights.
   }
 
   export class NeuralNetwork {
     public fitness: number
-    private _weights: number[]
     private layers: Layer[]
+    private _data: INetworkData
 
     constructor([inputNodeCount, ...otherLayers]: Array<number | number[]> = [2, [2], 1]) {
       const outputNodeCount  = otherLayers.pop() as number
       const hiddenLayerCount = otherLayers[0] as number[]
-      this.layers = [], this._weights = []
+      this.layers = [], this._data = { nodes: [], weights: [] }
       let nodesInPreviousLayer = 0
 
       // Input layer.
@@ -34,19 +34,18 @@ namespace Network {
 
     // Returns the network topology
     // and a flat array with weights of all the neurons.
-    get weights() {
-      const data: INetworkData = { neurons: [], weights: [] }
+    get data() {
+      if (this._data.weights.length > 0) { return this._data }
+      const data: INetworkData = { nodes: [], weights: [] }
 
-      // if (this._weights.length > 0) { return this._weights }
       for (const layer of this.layers) {
-        data.neurons.push(layer.nodes.length)
+        data.nodes.push(layer.nodes.length)
         for (const node of layer) {
-          this._weights = this._weights.concat(node.weights)
+          data.weights = data.weights.concat(node.weights)
         }
       }
 
-      data.weights = this._weights
-      return data
+      return this._data = data
     }
 
     /** Persists the mutated weights to the neurons. */
@@ -55,14 +54,14 @@ namespace Network {
       let index                = 0
       this.layers              = []
 
-      for (const i in data.neurons) {
-        const layer = new Layer(data.neurons[i], nodesInPreviousLayer)
+      for (const i in data.nodes) {
+        const layer = new Layer(data.nodes[i], nodesInPreviousLayer)
         for (const node of layer) {
           for (const k in node.weights) {
             node.weights[k] = data.weights[index++]
           }
         }
-        nodesInPreviousLayer = data.neurons[i]
+        nodesInPreviousLayer = data.nodes[i]
         this.layers.push(layer)
       }
     }
