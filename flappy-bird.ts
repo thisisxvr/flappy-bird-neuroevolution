@@ -4,6 +4,7 @@
 interface Window { setZeroTimeout: Function }
 
 namespace FlappyBird {
+
   import NeuralNetwork  = Network.NeuralNetwork
   const canvas          = document.querySelector('#flappy-bird') as HTMLCanvasElement
   const ctx             = canvas.getContext('2d')!
@@ -113,7 +114,7 @@ namespace FlappyBird {
       }
     }
 
-    ctx.fillStyle = "#FFC600"
+    ctx.fillStyle   = "#FFC600"
     ctx.strokeStyle = "#CE9E00"
 
     // Draw birds.
@@ -129,7 +130,7 @@ namespace FlappyBird {
     }
 
     ctx.fillStyle = "white"
-    ctx.font = "20px monospace"
+    ctx.font      = "20px monospace"
     ctx.fillText(`Score : ${score}`, 10, 25)
     ctx.fillText(`Generation : ${generationNumber}`, 10, 50)
     ctx.fillText(`Population : ${alives} of ${population.length}`, 10, 75)
@@ -253,4 +254,5 @@ namespace FlappyBird {
 
     isOutOfViewport(): boolean { return this.x + this.width < 0 }
   }
+
 }
