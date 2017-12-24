@@ -1,18 +1,24 @@
 /// <reference path="neural-network.ts" />
 
 namespace GeneticAlgorithm {
-  import IData = Network.IData
+
+  import INetworkData  = Network.INetworkData
   import NeuralNetwork = Network.NeuralNetwork
   const elitismRate    = 0.2    // Best networks pushed unchanged into the next gen.
   const randomnessRate = 0.2    // New random networks for the next generation.
   const crossoverRange = 0.5    // Uniform crossover range.
   const mutationRate   = 0.1    // Mutation rate on weights.
-  const mutationRange  = 0.5    // Interval of the mutation changes on the genome's weight.
-  const generations:     NeuralNetwork[][] = []
+  const mutationRange  = 0.5    // Upper and lower bounds for uniform mutation.
+  const generations: NeuralNetwork[][] = []
   let populationCount: number
 
+  /**
+   * Entry point for the algorithm.
+   * Returns a first generation when initialized, and the next evolution on subsequent calls.
+   */
   export function evolve(networkShape = [2, [2], 1], popCount = 50): NeuralNetwork[] {
     populationCount = popCount
+
     if (generations.length === 0) {
       const firstGeneration = []
       for (let i = 0; i < popCount; i++) {
@@ -22,9 +28,8 @@ namespace GeneticAlgorithm {
       generations.push(firstGeneration)
       return firstGeneration
     } else {
-      // const currentGeneration = generations[generations.length - 1]
       const nextGeneration = Generation.next()
-      if (generations.length >= 3) { generations.shift() }
+      if (generations.length >= 3) { generations.shift() }  // Discard older generations.
       generations.push(nextGeneration)
       return nextGeneration
     }
@@ -35,7 +40,7 @@ namespace GeneticAlgorithm {
     /** Returns the next generation. */
     export function next(): NeuralNetwork[] {
       const population = rank(generations[generations.length - 1])
-      const nextGen = []
+      const nextGen    = []
 
       // Push some of the elite chromosomes into the next generation unchanged.
       for (let i = 0; i < Math.round(elitismRate * populationCount); i++) {
@@ -77,17 +82,17 @@ namespace GeneticAlgorithm {
 
     /** Takes a pair of parents, performs crossover and mutation and returns the offspring. */
     function breed(parentOne: NeuralNetwork, parentTwo: NeuralNetwork, numberOfOffspring = 1): NeuralNetwork[] {
-      // tslint:disable-next-line:no-any
-      function crossover(parentOne: any, parentTwo: any): any {
-        const child = parentOne
+      function crossover(parentOne: INetworkData, parentTwo: INetworkData): INetworkData {
+        const childData = parentOne
 
         for (const i in parentTwo.weights) {
-          if (Math.random() <= crossoverRange) { child.weights[i] = parentTwo.weights[i] }
+          if (Math.random() <= crossoverRange) { childData.weights[i] = parentTwo.weights[i] }
         }
-        return child
+
+        return childData
       }
 
-      function mutate(data: IData) {
+      function mutate(data: INetworkData) {
         for (const i in data.weights) {
           if (Math.random() <= mutationRate) {
             data.weights[i] += Math.random() * mutationRange * 2 - mutationRange
@@ -98,8 +103,10 @@ namespace GeneticAlgorithm {
       const offspring = new Array<NeuralNetwork>(numberOfOffspring)
 
       for (let i = 0; i < numberOfOffspring; i++) {
-        const childData = crossover(parentOne.weights, parentTwo.weights)
+        const pOne = JSON.parse(JSON.stringify(parentOne.weights))  // Make a deep copy of parent one's data.
+        const childData = crossover(pOne, parentTwo.weights)
         mutate(childData)
+
         const child = new NeuralNetwork()
         child.persist(childData)
         offspring[i] = child
@@ -107,5 +114,7 @@ namespace GeneticAlgorithm {
 
       return offspring
     }
+
   }
+
 }
