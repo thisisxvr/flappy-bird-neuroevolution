@@ -21,7 +21,7 @@ Each network takes 2 inputs: the bird's position on the y-axis and the position 
 We use a simple fully connected feedforward neural network with 1 input, hidden, and output layer each. The input and hidden layer have 2 neurons while the output layer consists of 1 neuron. The activation function is the [logistic function](https://en.wikipedia.org/wiki/Logistic_function). 
 
 ## Literature
-- [Neuroevolution](https://www.scholarpedia.org/article/Neuroevolution)
+- [Neuroevolution](http://www.scholarpedia.org/article/Neuroevolution)
 - [Genetic Algorithms](http://www.scholarpedia.org/article/Genetic_algorithms)
 - [Feedforward Neural Network](https://en.wikipedia.org/wiki/Feedforward_neural_network)
 
